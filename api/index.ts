@@ -2,7 +2,6 @@ import express from "express";
 import productsRouter from "./routers/products";
 import cors from "cors";
 import categoriesRouter from "./routers/categories";
-import mongoDb from "./mongoDb";
 import * as mongoose from "mongoose";
 import userRouter from "./routers/users";
 import config from "./config";
@@ -13,7 +12,7 @@ import cocktailsRouter from "./routers/cocktails";
 const app = express();
 const port = 8000;
 
-app.use(cors());
+app.use(cors(config.corsOptions));
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -26,12 +25,12 @@ app.use('/admin', adminRouter);
 const run = async () => {
     await mongoose.connect(config.db);
 
-    app.listen(port, () => {
-        console.log(`Server started on port http://localhost:${port}`);
+    app.listen(config.port, () => {
+        console.log(`Server started on port http://localhost:${config.port}`);
     });
 
     process.on('exit', () => {
-       mongoDb.disconnect();
+        mongoose.disconnect();
     });
 };
 
