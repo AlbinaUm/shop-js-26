@@ -19,17 +19,5 @@ services:
     environment:
       - NODE_ENV=production
 
-  api:
-      build:
-        context: ./api  # Путь к директории с бэкендом
-      ports:
-        - "8000:8000"
-      volumes:
-        - ./api:/app
-      environment:
-        - NODE_ENV=production
-      depends_on:
-        - mongo
-
 volumes:
   mongo-data:
