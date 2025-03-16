@@ -13,7 +13,7 @@ services:
     build:
       context: ./frontend  # Путь к директории с фронтендом
     ports:
-      - "3000:3000"
+      - "80:80"
     volumes:
       - ./frontend:/app
     environment:
