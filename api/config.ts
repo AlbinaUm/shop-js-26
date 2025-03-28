@@ -16,6 +16,7 @@ const rootPath = __dirname;
 const corsWhiteList = [
     'http://localhost:5173',
     'http://localhost:5183',
+    'http://157.230.115.76:5183',
 ];
 
 const corsOptions: CorsOptions = {
