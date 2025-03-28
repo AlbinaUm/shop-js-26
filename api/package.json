@@ -8,8 +8,7 @@
     "start:test": "NODE_ENV=test ts-node index.ts",
     "dev": "nodemon index.ts",
     "seed": "ts-node fixtures.ts",
-    "seed:test": "NODE_ENV=test ts-node fixtures.ts",
-    "preinstall": "node check-version.js"
+    "seed:test": "NODE_ENV=test ts-node fixtures.ts"
   },
   "keywords": [],
   "author": "",
