@@ -17,6 +17,7 @@ const corsWhiteList = [
     'http://localhost:5173',
     'http://localhost:5183',
     'http://157.230.115.76:5183',
+    'http://104.248.20.243:5183
 ];
 
 const corsOptions: CorsOptions = {
