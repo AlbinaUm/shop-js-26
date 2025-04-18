@@ -32,7 +32,7 @@ jobs:
             git pull origin main
 
             # Пишем .env
-            echo "${{ secrets.ENV_BACKEND }}" > ./backend/.env
+            echo "${{ secrets.ENV_BACKEND }}" > ./api/.env
             echo "${{ secrets.ENV_FRONTEND }}" > ./frontend/.env
 
             # Ставим зависимости и билдим фронт
@@ -41,7 +41,7 @@ jobs:
             npm run build
 
             # Бэкенд
-            cd ../backend
+            cd ../api
             npm install
             npm run build
 
