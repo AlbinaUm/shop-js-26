@@ -8,7 +8,7 @@ export interface Product {
     create_at: string;
 }
 
-export type ProductWithoutId = Omit<Product, 'id', 'create_at'>
+export type ProductWithoutId = Omit<Product, 'id' | 'create_at'>;
 
 export interface  Category {
     _id: string;
