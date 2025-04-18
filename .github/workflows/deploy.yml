@@ -1,73 +1,52 @@
-name: 🚀 Deploy Shop to DO
+
+
+name: Deploy to VPS
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          node-version: '18'
-
-      # --- Сборка API ---
-      - name: Install & build API
-        working-directory: ./api
-        run: |
-          npm ci
-          npm run build
-
-      # --- Сборка фронтенда ---
-      - name: Install & build Frontend
-        working-directory: ./frontend
-        run: |
-          npm ci
-          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
-          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
-          npm run build
-
-      # --- Деплой на сервер (root) ---
-      - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USER }}      # теперь root
-          key: ${{ secrets.DO_SSH_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${{ secrets.SSH_KEY }}
           port: 22
-          script: |
-            set -e
+script: |
+  PROJECT_DIR="/var/www/shop-js-26"
 
-            # Подготовка папок
-            mkdir -p /root/shop-api
-            mkdir -p /var/www/shop-frontend
+  if [ ! -d "$PROJECT_DIR" ]; then
+    cd /var/www
+    git clone git@github.com:AlbinaUm/shop-js-26.git
+  fi
 
-            # .env для API
-            cat > /root/shop-api/.env <<EOF
-            GOOGLE_CLIENT_ID=${{ secrets.API_GOOGLE_CLIENT_ID }}
-            GOOGLE_CLIENT_SECRET=${{ secrets.API_GOOGLE_CLIENT_SECRET }}
-            MONGO_DB_URL=${{ secrets.API_MONGO_DB_URL }}
-            PORT=${{ secrets.API_PORT }}
-            EOF
+  cd $PROJECT_DIR
+  git pull origin main
 
-            # Копирование файлов
-            rsync -avz --delete ./api/       /root/shop-api/
-            rsync -avz --delete ./frontend/dist/  /var/www/shop-frontend/
+  # Пишем .env
+  echo "${{ secrets.ENV_BACKEND }}" > ./backend/.env
+  echo "${{ secrets.ENV_FRONTEND }}" > ./frontend/.env
 
-            # Запуск API под PM2
-            pm2 delete shop-api || true
-            cd /root/shop-api
-            npm ci
-            pm2 start dist/index.js --name shop-api
+  # Ставим зависимости и билдим
+  cd frontend
+  npm install
+  npm run build
 
-            # Раздача фронтенда через PM2
-            pm2 delete shop-frontend || true
-            pm2 serve /var/www/shop-frontend 5000 --name shop-frontend --spa
+  cd ../backend
+  npm install
+  npm run build
 
-            pm2 save
+  # Перезапуск pm2
+  pm2 restart shop-back || pm2 start dist/index.js --name shop-back
+
+  sudo systemctl restart nginx
