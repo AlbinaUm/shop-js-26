@@ -1,46 +1,73 @@
-name: Deploy to Digital Ocean
+name: 🚀 Deploy Shop to DO
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          ssh-private-key: ${{ secrets.PRIVATE_KEY }}
+          node-version: '18'
 
-      - name: Deploy to Server
+      # --- Сборка API ---
+      - name: Install & build API
+        working-directory: ./api
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
-            REPO_DIR=/var/www/shop-js-26
-            FRONTEND_DIR=\$REPO_DIR/frontend
-            BACKEND_DIR=\$REPO_DIR/api
+          npm ci
+          npm run build
 
-            cd \$REPO_DIR
+      # --- Сборка фронтенда ---
+      - name: Install & build Frontend
+        working-directory: ./frontend
+        run: |
+          npm ci
+          echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" >> .env
+          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env
+          npm run build
 
-            # Обновляем код
-            git pull origin main
+      # --- Деплой на сервер (root) ---
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}      # теперь root
+          key: ${{ secrets.DO_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
 
-            # Backend
-            echo "MONGO_URI=${{ secrets.MONGO_URI }}" > \$BACKEND_DIR/.env
-            cd \$BACKEND_DIR
-            npm install
-            pm2 restart backend || pm2 start src/index.js --name backend
+            # Подготовка папок
+            mkdir -p /root/shop-api
+            mkdir -p /var/www/shop-frontend
 
-            # Frontend
-            cd \$FRONTEND_DIR
-            npm install
-            npm run build
-            cp -r dist/* /var/www/html/
+            # .env для API
+            cat > /root/shop-api/.env <<EOF
+            GOOGLE_CLIENT_ID=${{ secrets.API_GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.API_GOOGLE_CLIENT_SECRET }}
+            MONGO_DB_URL=${{ secrets.API_MONGO_DB_URL }}
+            PORT=${{ secrets.API_PORT }}
+            EOF
 
-            echo "Deployment completed!"
-          EOF
+            # Копирование файлов
+            rsync -avz --delete ./api/       /root/shop-api/
+            rsync -avz --delete ./frontend/dist/  /var/www/shop-frontend/
+
+            # Запуск API под PM2
+            pm2 delete shop-api || true
+            cd /root/shop-api
+            npm ci
+            pm2 start dist/index.js --name shop-api
+
+            # Раздача фронтенда через PM2
+            pm2 delete shop-frontend || true
+            pm2 serve /var/www/shop-frontend 5000 --name shop-frontend --spa
+
+            pm2 save
