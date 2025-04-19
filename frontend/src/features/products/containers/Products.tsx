@@ -19,7 +19,7 @@ const Products = () => {
     <Grid container direction={"column"} spacing={2}>
       <Grid container justifyContent="space-between" alignItems="center">
         <Grid>
-          <Typography variant="h4">Products</Typography>
+          <Typography variant="h4">Products123</Typography>
         </Grid>
       </Grid>
 
