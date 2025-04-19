@@ -13,7 +13,6 @@ import AdminProductList from './features/admin/AdminProductList.tsx';
 import AdminCategoriesList from './features/admin/AdminCategoriesList.tsx';
 import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
-import CocktailForm from './features/admin/CocktailForm.tsx';
 
 const App = () => {
   const user = useAppSelector(selectUser);
@@ -49,7 +48,6 @@ const App = () => {
               <Route path="" element={<AdminProductList/>}/>
               <Route path="products" element={<AdminProductList/>}/>
               <Route path="categories" element={<AdminCategoriesList/>}/>
-              <Route path="cocktails" element={<CocktailForm/>}/>
               <Route path="products/new" element={<NewProduct/>}/>
             </Route>
 

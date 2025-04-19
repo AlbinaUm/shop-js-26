@@ -23,12 +23,6 @@ const AdminMenu = () => {
              <ListItemText primary="Categories"/>
            </ListItemButton>
          </ListItem>
-
-         <ListItem disablePadding>
-           <ListItemButton component={Link} to='/admin/cocktails'>
-             <ListItemText primary="Cocktails"/>
-           </ListItemButton>
-         </ListItem>
        </List>
       </Grid>
     </Grid>

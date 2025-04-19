@@ -1,6 +1,5 @@
 import express from "express";
-import {ProductWithoutId} from "../types";
-import {imagesUpload} from "../multer";
+import {imagesUpload} from "../middleware/multer";
 import Product from "../models/Product";
 import Category from "../models/Category";
 import auth from "../middleware/auth";
@@ -43,7 +42,7 @@ productsRouter.post('/', imagesUpload.single('image'), auth, permit('admin'),  a
         if (!category) res.status(404).send('Not Found category');
     }
 
-    const newProduct: ProductWithoutId = {
+    const newProduct = {
         category: req.body.category,
         title: req.body.title,
         description: req.body.description,

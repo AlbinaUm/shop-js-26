@@ -6,9 +6,6 @@ const envFile = process.env['NODE_ENV'] ?
     `.${process.env['NODE_ENV']}.env` :
     '.env';
 
-console.log(process.env['NODE_ENV']);
-console.log(envFile);
-
 configDotenv({path: envFile});
 
 const rootPath = __dirname;
@@ -22,13 +19,7 @@ const corsWhiteList = [
 ];
 
 const corsOptions: CorsOptions = {
-    origin: (origin, callback) => {
-        if (!origin || corsWhiteList.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('No allowed by CORS'));
-        }
-    },
+    origin: true,
     credentials: true,
 };
 

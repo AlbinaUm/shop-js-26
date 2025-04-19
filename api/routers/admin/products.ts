@@ -1,8 +1,7 @@
 import express from "express";
 import Product from "../../models/Product";
-import {imagesUpload} from "../../multer";
+import {imagesUpload} from "../../middleware/multer";
 import Category from "../../models/Category";
-import {ProductWithoutId} from "../../types";
 
 
 const productsAdminRouter = express.Router();
@@ -23,7 +22,7 @@ productsAdminRouter.post('/', imagesUpload.single('image'),  async (req, res, ne
         if (!category) res.status(404).send('Not Found category');
     }
 
-    const newProduct: ProductWithoutId = {
+    const newProduct = {
         category: req.body.category,
         title: req.body.title,
         description: req.body.description,
