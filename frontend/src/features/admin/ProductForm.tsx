@@ -7,7 +7,6 @@ import FileInput from '../../components/FileInput/FileInput.tsx';
 import { useAppDispatch, useAppSelector } from '../../app/hooks.ts';
 import { fetchCategories } from '../categories/categoriesThunk.ts';
 import { selectCategoriesItems, } from '../categories/categoriesSlice.ts';
-import { Editor } from '@tinymce/tinymce-react';
 
 interface Props {
   onSubmit: (product: ProductMutation) => void;
@@ -109,34 +108,14 @@ const ProductForm: React.FC<Props> = ({ onSubmit }) => {
         </Grid>
 
         <Grid size={{ xs: 12 }}>
-          <Editor
-            tinymceScriptSrc='/tinymce/tinymce.min.js'
-            licenseKey='gpl'
-            init={{
-              height: 500,
-              menubar: false,
-              plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
-              ],
-              toolbar: 'undo redo | blocks | ' +
-                'bold italic forecolor | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | help',
-              content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-            }}
+          <TextField
+            multiline
+            id="description"
+            name="description"
+            label="Description"
             value={form.description}
-            onEditorChange={(content) => setForm({ ...form, description: content })}
+            onChange={inputChangeHandler}
           />
-          {/*<TextField*/}
-          {/*  multiline*/}
-          {/*  id="description"*/}
-          {/*  name="description"*/}
-          {/*  label="Description"*/}
-          {/*  value={form.description}*/}
-          {/*  onChange={inputChangeHandler}*/}
-          {/*/>*/}
         </Grid>
 
         <Grid size={{ xs: 12 }}>
