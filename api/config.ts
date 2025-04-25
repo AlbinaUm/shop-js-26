@@ -14,15 +14,20 @@ const corsWhiteList = [
     'http://localhost:5173',
     'http://localhost:5183',
     'http://159.223.29.16:5183',
-     'http://159.223.29.16',
+    'http://159.223.29.16',
     'http://104.248.20.243:5183'
 ];
 
 const corsOptions: CorsOptions = {
-    origin: true,
+    origin: (origin, callback) => {
+        if (!origin || corsWhiteList.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 };
-
 const config = {
     port: process.env.PORT || 8000,
     rootPath,
