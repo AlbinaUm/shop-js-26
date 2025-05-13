@@ -9,50 +9,50 @@ const client = new OAuth2Client(config.google.clientId);
 
 const userRouter = express.Router();
 userRouter.post('/facebook', async (req, res, next) => {
-   try {
-       const {accessToken, userID} = req.body;
-       if (!accessToken && !userID) {
-           res.status(400).send({error: "Access token and userId must be in req"});
-           return;
-       }
+    try {
+        const {accessToken, userID} = req.body;
+        if (!accessToken && !userID) {
+            res.status(400).send({error: "Access token and userId must be in req"});
+            return;
+        }
 
-       const url = `https://graph.facebook.com/v12.0/me?fields=id,name,email&access_token=${accessToken}`;
-       const response = await fetch(url);
+        const url = `https://graph.facebook.com/v12.0/me?fields=id,name,email&access_token=${accessToken}`;
+        const response = await fetch(url);
 
-       if (!response.ok) {
-           res.status(400).send({error: "Invalid Facebook user data"});
-           return;
-       }
+        if (!response.ok) {
+            res.status(400).send({error: "Invalid Facebook user data"});
+            return;
+        }
 
-       const fbData = await response.json();
+        const fbData = await response.json();
 
-       if (!fbData || fbData.id !== userID) {
-           res.status(400).send({error: "Invalid Facebook ID"});
-           return;
-       }
+        if (!fbData || fbData.id !== userID) {
+            res.status(400).send({error: "Invalid Facebook ID"});
+            return;
+        }
 
-       const facebookID = fbData.id;
+        const facebookID = fbData.id;
 
-       let user = await User.findOne({email: fbData.email});
+        let user = await User.findOne({email: fbData.email});
 
-       if (!user) {
-           const newPassword = crypto.randomUUID();
-           user = new User({
-               username: fbData.name,
-               email: fbData.email,
-               password: newPassword,
-               confirmPassword: newPassword,
-               facebookID,
-           });
-       }
+        if (!user) {
+            const newPassword = crypto.randomUUID();
+            user = new User({
+                username: fbData.name,
+                email: fbData.email,
+                password: newPassword,
+                confirmPassword: newPassword,
+                facebookID,
+            });
+        }
 
-       user.generateToken();
-       user.facebookID = facebookID;
-       await user.save();
-       res.send({message: 'Login with facebook success!', user});
-   } catch (e) {
-       next(e);
-   }
+        user.generateToken();
+        user.facebookID = facebookID;
+        await user.save();
+        res.send({message: 'Login with facebook success!', user});
+    } catch (e) {
+        next(e);
+    }
 });
 
 userRouter.post("/google", async (req, res, next) => {
@@ -82,7 +82,7 @@ userRouter.post("/google", async (req, res, next) => {
         let user = await User.findOne({email: email});
 
         if (!user) {
-            const newPassword =  crypto.randomUUID();
+            const newPassword = crypto.randomUUID();
             user = new User({
                 username: displayName,
                 email: email,
@@ -115,7 +115,23 @@ userRouter.post('/register', async (req, res, next) => {
         user.generateToken();
 
         await user.save();
-        res.send({user, message: "Register success"});
+
+        res.cookie('token', user.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict', // CSRF
+            maxAge: 1000 * 60 * 60 * 24 * 7 // 7 дней
+        })
+
+        const safeUser = {
+            _id: user._id,
+            email: user.email,
+            username: user.username,
+            role: user.role,
+        };
+
+
+        res.send({user: safeUser, message: "Register success"});
     } catch (error) {
         if (error instanceof Error.ValidationError) {
             res.status(400).send(error);
@@ -145,7 +161,21 @@ userRouter.post('/sessions', async (req, res, next) => {
         user.generateToken();
         await user.save();
 
-        res.send({message: 'Username and password is correct', user});
+        res.cookie('token', user.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict', // CSRF
+            maxAge: 1000 * 60 * 60 * 24 * 7 // 7 дней
+        })
+
+        const safeUser = {
+            _id: user._id,
+            email: user.email,
+            username: user.username,
+            role: user.role,
+        };
+
+        res.send({message: 'Username and password is correct', user: safeUser});
 
     } catch (error) {
         if (error instanceof Error.ValidationError) {
@@ -163,6 +193,14 @@ userRouter.delete('/sessions', auth, async (req, res, next) => {
 
     try {
         const user = await User.findOne({_id: userFromAuth._id});
+
+
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict', // CSRF
+        })
+
         if (user) {
             user.generateToken();
             await user.save();

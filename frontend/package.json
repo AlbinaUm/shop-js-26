@@ -29,6 +29,8 @@
     "bootstrap": "^5.3.3",
     "fs-extra": "^11.3.0",
     "i18next": "^24.2.2",
+    "mobx": "^6.13.7",
+    "mobx-react-lite": "^4.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-i18next": "^15.4.1",
@@ -38,7 +40,8 @@
     "redux-persist": "^6.0.0",
     "redux-thunk": "^3.1.0",
     "styled-components": "^6.1.13",
-    "tinymce": "^7.6.1"
+    "tinymce": "^7.6.1",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

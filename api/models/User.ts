@@ -20,7 +20,6 @@ interface UserVirtuals {
     confirmPassword: string;
 }
 
-const regEmail = /^(\w+[-.]?\w+)@(\w+)([.-]?\w+)?(\.[a-zA-Z]{2,3})$/;
 
 const UserSchema = new Schema<
     HydratedDocument<UserFields>,
@@ -46,13 +45,6 @@ const UserSchema = new Schema<
                 },
                 message: "This email is already taken",
             },
-            {
-                validator: async function (this: HydratedDocument<UserFields>, value: string): Promise<boolean> {
-                    if (!this.isModified('email')) return true;
-                    return regEmail.test(value);
-                },
-                message: "Invalid email format",
-            }
         ]
     },
     password: {

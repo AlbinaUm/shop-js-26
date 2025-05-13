@@ -6,11 +6,12 @@ import * as mongoose from "mongoose";
 import userRouter from "./routers/users";
 import config from "./config";
 import adminRouter from "./routers/admin";
-
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.use(cors(config.corsOptions));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.static('public'));
 

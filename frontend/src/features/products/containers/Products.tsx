@@ -1,19 +1,21 @@
 import Grid from '@mui/material/Grid2';
 import { CircularProgress, Typography } from '@mui/material';
-import { useAppDispatch, useAppSelector } from '../../../app/hooks.ts';
-import { useEffect } from 'react';
-import { fetchProducts } from '../productsThunk.ts';
-import { selectFetchLoading, selectProductsItems } from '../productsSlice.ts';
+import { useCallback, useEffect } from 'react';
 import ProductItem from '../components/ProductItem.tsx';
+import useProductsStore from '../../../app/store/useProductStore.ts';
+import { observer } from 'mobx-react-lite';
 
-const Products = () => {
-  const dispatch = useAppDispatch();
-  const products = useAppSelector(selectProductsItems);
-  const isFetchProductsLoading = useAppSelector(selectFetchLoading);
+const Products = observer(() => {
+  const {products, fetchLoading, fetchProducts} = useProductsStore();
+
+  const fetchData = useCallback(
+    async () => {
+      await fetchProducts();
+    }, [fetchProducts]);
 
   useEffect(() => {
-    dispatch(fetchProducts());
-  }, [dispatch]);
+    void fetchData();
+  }, []);
 
   return (
     <Grid container direction={"column"} spacing={2}>
@@ -24,11 +26,11 @@ const Products = () => {
       </Grid>
 
       <Grid container direction={"column"}>
-        {isFetchProductsLoading ? (
+        {fetchLoading ? (
           <CircularProgress />
         ) : (
           <>
-            {products.length === 0 && !isFetchProductsLoading ? (
+            {products.length === 0 && !fetchLoading ? (
               <Typography variant="h6">No products yet</Typography>
             ) : (
               <>
@@ -50,6 +52,6 @@ const Products = () => {
       </Grid>
     </Grid>
   );
-};
+});
 
 export default Products;
